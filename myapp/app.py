@@ -37,8 +37,8 @@ def containers_index():
     """
     List all containers
  
-    curl -s -X GET -H 'Accept: application/json' http://localhost:8080/containers | python -mjson.tool
-    curl -s -X GET -H 'Accept: application/json' http://localhost:8080/containers?state=running | python -mjson.tool
+    curl -s -X GET -H 'Accept: application/json' http://localhost5000/containers | python -mjson.tool
+    curl -s -X GET -H 'Accept: application/json' http://localhost:5000/containers?state=running | python -mjson.tool
 
     """
     if request.args.get('state') == 'running': 
@@ -194,7 +194,7 @@ def docker(*args):
     process = Popen(cmd, stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     if stderr.startswith('Error'):
-        print 'Error: {0} -> {1}'.format(' '.join(cmd), stderr)
+        print ('Error: {0} -> {1}'.format(' '.join(cmd), stderr))
     return stderr + stdout
 
 # 
@@ -241,4 +241,4 @@ def docker_images_to_array(output):
     return all
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0",port=8080, debug=True)
+    app.run(host="0.0.0.0",port=5000, debug=True)
