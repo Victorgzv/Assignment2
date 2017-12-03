@@ -5,7 +5,7 @@
 # Set the base image to Ubuntu
 FROM ubuntu:latest
 # File Author / Maintainer
-MAINTAINER MBasel  Magableh
+MAINTAINER Victor Gonzalez
 Label org.label-schema.group="monitoring"
 # Update the sources list
 RUN apt-get update
