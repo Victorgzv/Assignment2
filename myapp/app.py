@@ -52,7 +52,7 @@ def images_index():
     """
     List all images
     Complete the code below generating a valid response.
-    curl -s -X GET -H 'Accept: application/json' http://localhost:8080/images | python -mjson.tool
+    curl -s -X GET -H 'Accept: application/json' http://35.189.108.29:5000/images | python -mjson.tool
     """
 
     command = docker('images')
@@ -66,18 +66,16 @@ def images_index():
 def containers_show(id):
     """
     Inspect specific container
-    curl -s -X GET -H 'Accept: application/json' http://localhost:8080/containers/b6cd8ea512c8 | python -mjson.tool
+    curl -s -X GET -H 'Accept: application/json'http://35.189.108.29:5000/containers/idOfContainer | python -mjson.tool
     """
-
     resp = docker('inspect', id)
-
     return Response(response=resp, mimetype="application/json")
 
 @app.route('/containers/<id>/logs', methods=['GET'])
 def containers_log(id):
     """
     Dump specific container logs
-    curl -s -X GET -H 'Accept: application/json' http://localhost:8080/containers/b6cd8ea512c8/logs | python -mjson.tool
+    curl -s -X GET -H 'Accept: application/json' http://35.189.108.29:5000/containers/idOfContainer/logs | python -mjson.tool
     """
     command = docker('logs', id)
     objects = docker_logs_to_object(id,command)
@@ -85,18 +83,19 @@ def containers_log(id):
     return Response(response=pp_json(resp), mimetype="application/json")
 
 @app.route('/services', methods=['GET'])
-def services_list():
+def get_services():
     command = docker('service', 'ls')
-    resp = json.dumps(docker_services_to_array(command))
+	arrays=docker_services_to_array(command)
+    resp = json.dumps(arrays)
     return Response(response=pp_json(resp), mimetype="application/json")
 
 
 @app.route('/nodes', methods=['GET'])
-def nodes_list():
-
+def get_nodes():
 
     command = docker('node', 'ls')
-    resp = json.dumps(docker_nodes_to_array(command))
+	arrayn=docker_nodes_to_array(command)
+    resp = json.dumps(arrayn)
     return Response(response=resp, mimetype="application/json")
 
 
@@ -104,10 +103,10 @@ def nodes_list():
 def images_remove(id):
     """
     Delete a specific image
-    curl -s -X DELETE -H 'Content-Type: application/json' http://localhost:8080/images/7f2619ed1768
+    curl -s -X DELETE -H 'Content-Type: application/json'  http://35.189.108.29:5000/images/idOfImage
     """
     docker ('rmi', id)
-    resp = '{"id": "%s"}' % id
+    resp = '{"ID of removed image": "%s"}' % id
   
     return Response(response=resp, mimetype="application/json")
 
@@ -116,10 +115,10 @@ def images_remove(id):
 def containers_remove(id):
     """
     Delete a specific container - must be already stopped/killed
-    curl -s -X DELETE -H 'Content-Type: application/json' http://localhost:8080/containers/b6cd8ea512c8
+    curl -s -X DELETE -H 'Content-Type: application/json' http://35.189.108.29:5000/IDofcontainer
     """
     docker('rm', id)
-    resp = '{"id": "%s"}' % id
+    resp = '{"ID of removed container": "%s"}' % id
     return Response(response=resp, mimetype="application/json")
 
 
@@ -127,11 +126,12 @@ def containers_remove(id):
 def containers_remove_all():
     """
     Force remove all containers - dangrous!
-    curl -s -X DELETE -H 'Content-Type: application/json' http://localhost:8080/containers
+    curl -s -X DELETE -H 'Content-Type: application/json'  http://35.189.108.29:5000/containers
     """
     command = docker_ps_to_array(docker('ps', '-a'))
-    #deletes all containers 
+  
     for i in command:
+	  #deletes all containers It stops them and then remove it.
         docker('stop', i['id'])
         docker('rm', i['id'])
 
@@ -143,16 +143,14 @@ def containers_remove_all():
 @app.route('/images', methods=['DELETE'])
 def images_remove_all():
     """
-    Force remove all images - dangrous!
-    curl -s -X DELETE -H 'Content-Type: application/json' http://localhost:8080/images
+    Force remove all images - dangerous!
+    curl -s -X DELETE -H 'Content-Type: application/json' http://35.189.108.29:5000/images
+	It deletes all images if these one are not running as a container
     """
     command = docker_images_to_array(docker('images'))
-    #deletes all images except dockercms image
     for i in command:
         docker('rmi', i['name'])
- 
     resp = '{"Information:": "%s"}' % 'All images were deleted'
-  
     return Response(response=resp, mimetype="application/json")
 
 
@@ -164,10 +162,10 @@ def containers_create():
     """
     body = request.get_json(force=True)
     image = body['image']
-    args = ('run', '-d')
+    
     id = docker('run', '-d', image)[0:12]
-    resp = '{"New container created with ID": "%s"}' % id
-    return Response(response=resp, mimetype="application/json")
+	
+    return Response(response='{"id": "%s"}' % id, mimetype="application/json")
 
 
 @app.route('/images', methods=['POST'])
@@ -179,7 +177,7 @@ def images_create():
     dockerfile = request.files['file']
     dockerfile.save ('Dockerfile')
     
-    docker ('build', '-t', 'my_upload', '.')
+    docker ('build', '-t', 'my_new_image', '.')
     new_image = docker_images_to_array(docker('images'))
     
     resp = '{"New image created with ID": "%s"}' % new_image[0]['id']
@@ -191,8 +189,8 @@ def images_create():
 def containers_update(id):
     """
     Update container attributes (support: state=running|stopped)
-    curl -X PATCH -H 'Content-Type: application/json' http://localhost:8080/containers/b6cd8ea512c8 -d '{"state": "running"}'
-    curl -X PATCH -H 'Content-Type: application/json' http://localhost:8080/containers/b6cd8ea512c8 -d '{"state": "stopped"}'
+    curl -X PATCH -H 'Content-Type: application/json' http://35.189.108.29:5000/containers/b6cd8ea512c8 -d '{"state": "running"}'
+    curl -X PATCH -H 'Content-Type: application/json'  http://35.189.108.29:5000/containers/b6cd8ea512c8 -d '{"state": "stopped"}'
     """
     body = request.get_json(force=True)
     try:
@@ -213,11 +211,11 @@ def containers_update(id):
 def images_update(id):
     """
     Update image attributes (support: name[:tag])  tag name should be lowercase only
-    curl -s -X PATCH -H 'Content-Type: application/json' http://localhost:8080/images/7f2619ed1768 -d '{"tag": "test:1.0"}'
+    curl -s -X PATCH -H 'Content-Type: application/json'  http://35.189.108.29:5000/images/7f2619ed1768 -d '{"tag": "test:1.0"}'
     """
     body = request.get_json(force=True)
-    tag = body['tag']
-    docker('tag', id, tag)
+    new_tag = body['tag']
+    docker('tag', id, new_tag)
     resp = '{"id": "%s"}' % id 
     return Response(response=resp, mimetype="application/json")
 
@@ -282,7 +280,17 @@ def docker_images_to_array(output):
         all.append(each)
     return all
 
-
+def docker_nodes_to_array(output):
+    all = []
+    for c in [line.split() for line in output.splitlines()[1:]]:
+        each = {}
+        each['id'] = c[0]
+        each['hostname'] = c[1]
+        each['status'] = c[2]
+        each['available'] = c[3]
+        all.append(each)
+    return all
+	
 def docker_services_to_array(output):
     all = []
     for c in [line.split() for line in output.splitlines()[1:]]:
@@ -295,18 +303,7 @@ def docker_services_to_array(output):
         all.append(each)
     return all
 
-
-def docker_nodes_to_array(output):
-    all = []
-    for c in [line.split() for line in output.splitlines()[1:]]:
-        each = {}
-        each['id'] = c[0]
-        each['hostname'] = c[1]
-        each['status'] = c[2]
-        each['available'] = c[3]
-        all.append(each)
-    return all
-
+#Indentation style for json output. It display the output in an easy to read way.
 def pp_json(json_thing, sort=True, indents=4):
     if type(json_thing) is str:
         pp = (json.dumps(json.loads(json_thing), sort_keys=sort, indent=indents))
