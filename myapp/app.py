@@ -114,8 +114,15 @@ def containers_remove_all():
     Force remove all containers - dangrous!
     curl -s -X DELETE -H 'Content-Type: application/json' http://localhost:8080/containers
     """
+    command = docker_ps_to_array(docker('ps', '-a'))
+    #deletes all containers 
+    for i in command:
+        docker('stop', i['id'])
+        docker('rm', i['id'])
+
+    resp = '{"Information:": "%s"}' % 'All containers were deleted'
    
-    return Response(response='Removed all containers', mimetype="application/json")
+    return Response(response=resp, mimetype="application/json")
 
 
 @app.route('/images', methods=['DELETE'])
@@ -124,8 +131,14 @@ def images_remove_all():
     Force remove all images - dangrous!
     curl -s -X DELETE -H 'Content-Type: application/json' http://localhost:8080/images
     """
+    command = docker_images_to_array(docker('images'))
+    #deletes all images except dockercms image
+    for i in command:
+        docker('rmi', i['name'])
+ 
+    resp = '{"Information:": "%s"}' % 'All images were deleted'
   
-    return Response(response='Removed all images', mimetype="application/json")
+    return Response(response=resp, mimetype="application/json")
 
 
 @app.route('/containers', methods=['POST'])
@@ -138,7 +151,8 @@ def containers_create():
     image = body['image']
     args = ('run', '-d')
     id = docker('run', '-d', image)[0:12]
-    return Response(response='{"New container created with ID": "%s"}' % id, mimetype="application/json")
+    resp = '{"New container created with ID": "%s"}' % id
+    return Response(response=resp, mimetype="application/json")
 
 
 @app.route('/images', methods=['POST'])
@@ -186,7 +200,10 @@ def images_update(id):
     Update image attributes (support: name[:tag])  tag name should be lowercase only
     curl -s -X PATCH -H 'Content-Type: application/json' http://localhost:8080/images/7f2619ed1768 -d '{"tag": "test:1.0"}'
     """
-   
+    body = request.get_json(force=True)
+    tag = body['tag']
+    docker('tag', id, tag)
+    resp = '{"id": "%s"}' % id 
     return Response(response=resp, mimetype="application/json")
 
 
