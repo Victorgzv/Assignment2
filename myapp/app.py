@@ -132,27 +132,28 @@ def images_remove_all():
 def containers_create():
     """
     Create container (from existing image using id or name)
-    curl -X POST -H 'Content-Type: application/json' http://localhost:8080/containers -d '{"image": "my-app"}'
-    curl -X POST -H 'Content-Type: application/json' http://localhost:8080/containers -d '{"image": "b14752a6590e"}'
-    curl -X POST -H 'Content-Type: application/json' http://localhost:8080/containers -d '{"image": "b14752a6590e","publish":"8081:22"}'
+    curl -X POST -H 'Content-Type: application/json' http://35.189.108.29:5000/containers -d '{"image": "77d1809f3481"}'
     """
-   
-    return Response(response='{"id": "%s"}' % id, mimetype="application/json")
+    body = request.get_json(force=True)
+    image = body['image']
+    args = ('run', '-d')
+    id = docker('run', '-d', image)[0:12]
+    return Response(response='{"New container created with ID": "%s"}' % id, mimetype="application/json")
 
 
 @app.route('/images', methods=['POST'])
 def images_create():
     """
     Create image (from uploaded Dockerfile)
-    curl -H 'Accept: application/json' -F file=@Dockerfile http://localhost:8080/images
-    curl -H 'Accept: application/json' -F file=@dockerfiles/whale-say.Dockerfile http://localhost:8080/images
+    curl -H 'Accept: application/json' -F "file=@./lab5-todo-repo/Dockerfile" http://35.189.108.29:5000/images
     """
-    path = '/'+df
-
-    args = ('build', '-t', tag, '--file=', path)
-
-    id = docker(*(args))
-    resp = '{"id": "%s"}' % id
+    dockerfile = request.files['file']
+    dockerfile.save ('Dockerfile')
+    
+    docker ('build', '-t', 'my_upload', '.')
+    new_image = docker_images_to_array(docker('images'))
+    
+    resp = '{"New image created with ID": "%s"}' % new_image[0]['id']
     
     return Response(response=resp, mimetype="application/json")
 
