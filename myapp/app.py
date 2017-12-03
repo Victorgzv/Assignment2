@@ -84,6 +84,21 @@ def containers_log(id):
     resp = json.dumps(objects)
     return Response(response=pp_json(resp), mimetype="application/json")
 
+@app.route('/services', methods=['GET'])
+def services_list():
+    command = docker('service', 'ls')
+    resp = json.dumps(docker_services_to_array(command))
+    return Response(response=pp_json(resp), mimetype="application/json")
+
+
+@app.route('/nodes', methods=['GET'])
+def nodes_list():
+
+
+    command = docker('node', 'ls')
+    resp = json.dumps(docker_nodes_to_array(command))
+    return Response(response=resp, mimetype="application/json")
+
 
 @app.route('/images/<id>', methods=['DELETE'])
 def images_remove(id):
@@ -207,18 +222,6 @@ def images_update(id):
     return Response(response=resp, mimetype="application/json")
 
 
-@app.route('/services', methods=['GET'])
-def services_list():
-    command = docker('service', 'ls')
-    resp = json.dumps(docker_services_to_array(command))
-    return Response(response=pp_json(resp), mimetype="application/json")
-
-
-@app.route('/nodes', methods=['GET'])
-def nodes_list():
-    j = docker_nodes_to_array(docker('node', 'ls'))
-    resp = json.dumps(j)
-    return Response(response=resp, mimetype="application/json")
 
 
 def docker(*args):
@@ -300,8 +303,7 @@ def docker_nodes_to_array(output):
         each['id'] = c[0]
         each['hostname'] = c[1]
         each['status'] = c[2]
-        each['availability'] = c[3]
-        each['manager_status'] = c[4]
+        each['available'] = c[3]
         all.append(each)
     return all
 
