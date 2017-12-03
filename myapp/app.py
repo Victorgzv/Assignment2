@@ -91,6 +91,8 @@ def images_remove(id):
     Delete a specific image
     curl -s -X DELETE -H 'Content-Type: application/json' http://localhost:8080/images/7f2619ed1768
     """
+    docker ('rmi', id)
+    resp = '{"id": "%s"}' % id
   
     return Response(response=resp, mimetype="application/json")
 
@@ -101,7 +103,8 @@ def containers_remove(id):
     Delete a specific container - must be already stopped/killed
     curl -s -X DELETE -H 'Content-Type: application/json' http://localhost:8080/containers/b6cd8ea512c8
     """
-  
+    docker('rm', id)
+    resp = '{"id": "%s"}' % id
     return Response(response=resp, mimetype="application/json")
 
 
@@ -144,6 +147,12 @@ def images_create():
     curl -H 'Accept: application/json' -F file=@Dockerfile http://localhost:8080/images
     curl -H 'Accept: application/json' -F file=@dockerfiles/whale-say.Dockerfile http://localhost:8080/images
     """
+    path = '/'+df
+
+    args = ('build', '-t', tag, '--file=', path)
+
+    id = docker(*(args))
+    resp = '{"id": "%s"}' % id
     
     return Response(response=resp, mimetype="application/json")
 
@@ -155,6 +164,17 @@ def containers_update(id):
     curl -X PATCH -H 'Content-Type: application/json' http://localhost:8080/containers/b6cd8ea512c8 -d '{"state": "running"}'
     curl -X PATCH -H 'Content-Type: application/json' http://localhost:8080/containers/b6cd8ea512c8 -d '{"state": "stopped"}'
     """
+    body = request.get_json(force=True)
+    try:
+        state = body['state']
+        if state == 'running':
+            docker('restart', id)
+        else:
+            docker('stop', id)
+    except:
+        pass
+
+    resp = '{"id": "%s"}' % id
    
     return Response(response=resp, mimetype="application/json")
 
@@ -170,17 +190,17 @@ def images_update(id):
 
 
 @app.route('/services', methods=['GET'])
-def services_index():
-    output = docker('service', 'ls')
-    resp = json.dumps(docker_services_to_array(output))
+def services_list():
+    command = docker('service', 'ls')
+    resp = json.dumps(docker_services_to_array(command))
     return Response(response=pp_json(resp), mimetype="application/json")
 
 
 @app.route('/nodes', methods=['GET'])
-def nodes_index():
-    command = docker('node', 'ls')
-    resp = json.dumps(docker_nodes_to_array(command))
-    return Response(response=pp_json(resp), mimetype="application/json")
+def nodes_list():
+    j = docker_nodes_to_array(docker('node', 'ls'))
+    resp = json.dumps(j)
+    return Response(response=resp, mimetype="application/json")
 
 
 def docker(*args):
