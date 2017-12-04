@@ -2,12 +2,7 @@
 A DockerCMS.
 To run this application run the bash script named a2.sh
 
-<div align="center">
-    <iframe width="620" height="315"
-        src="https://www.youtube.com/watch?v=QKVt7N_XpYg">
-    </iframe>
-</div>
-
+<iframe width="560" height="315" src="https://www.youtube.com/embed/QKVt7N_XpYg" frameborder="0" allowfullscreen></iframe>
 
 
 #Get all containers
