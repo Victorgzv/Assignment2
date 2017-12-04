@@ -2,7 +2,9 @@
 A DockerCMS.
 To run this application run the bash script named a2.sh
 
-https://www.youtube.com/watch?v=QKVt7N_XpYg&feature=youtu.be
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/QKVt7N_XpYg&feature=youtu.be/0.jpg)](http://www.youtube.com/watch?v=QKVt7N_XpYg&feature=youtu.be "Video Title")
+
+
 
 
 #Get all containers
