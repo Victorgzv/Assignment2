@@ -1,6 +1,7 @@
 # Assignment2
 A DockerCMS.
-To runthis application run the bash script named a2.sh
+To run this application run the bash script named a2.sh
+<iframe width="560" height="315" src="https://www.youtube.com/embed/QKVt7N_XpYg" frameborder="0" allowfullscreen></iframe>
 
 
 #Get all containers
